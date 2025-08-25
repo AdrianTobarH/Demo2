@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Do you love me?</title>
+  <style>
+    :root {
+      --bg1: #ffe4ec;
+      --bg2: #ffd7f2;
+      --primary: #ff4d6d;
+      --text: #3d3d3d;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(1200px 800px at 50% 10%, var(--bg2), var(--bg1));
+      display: grid;
+      place-items: center;
+      overflow: hidden; /* evita scroll cuando el botón No se mueve */
+    }
+
+    .wrap {
+      width: min(680px, 92vw);
+      text-align: center;
+    }
+
+    .gif-top {
+      display: block;
+      width: min(260px, 70vw);
+      height: auto;
+      margin: 8px auto 14px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.12);
+      user-select: none;
+      pointer-events: none; /* que el puntero no interfiera con los botones */
+    }
+
+    .card {
+      background: #fff;
+      padding: 28px 18px 70px; /* espacio inferior por si el No se acerca */
+      border-radius: 20px;
+      box-shadow: 0 12px 32px rgba(0,0,0,.12);
+      position: relative;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .buttons {
+      position: relative;
+      height: 120px;        /* espacio “de juego” */
+      margin-top: 6px;
+    }
+
+    button {
+      position: relative;
+      appearance: none;
+      border: 0;
+      border-radius: 12px;
+      padding: 12px 22px;
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+      transition: transform .25s ease, box-shadow .25s ease, font-size .25s ease;
+      box-shadow: 0 6px 16px rgba(0,0,0,.15);
+      user-select: none;
+      touch-action: manipulation;
+    }
+
+    #yesBtn {
+      background: var(--primary);
+      color: #fff;
+      font-weight: 800;
+      position: fixed;              /* para que el scale no mueva el layout */
+      left: 50%;
+      top: 58%;
+      transform: translate(-50%, -50%) scale(1);
+      z-index: 2;
+    }
+
+    #noBtn {
+      background: #a3a3a3;
+      color: #fff;
+      position: fixed;              /* lo movemos por la pantalla */
+      left: 30%;
+      top: 65%;
+      z-index: 3;
+    }
+
+    .result {
+      display: none;
+      margin-top: 18px;
+      color: var(--primary);
+      font-size: 28px;
+      font-weight: 800;
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <!-- GIF superior -->
+    <img
+      class="gif-top"
+      src="https://media.giphy.com/media/T1FHCaNU42wgF1JOTs/giphy.gif"
+      alt="Cute love bears hugging GIF"
+    />
+
+    <section class="card">
+      <h2>Do you love me? ❤️</h2>
+
+      <div class="buttons" aria-hidden="true"></div>
+
+      <p id="result" class="result">I knew it! 😍❤️</p>
+    </section>
+  </main>
+
+  <script>
+    const yesBtn = document.getElementById('yesBtn') || (() => {
+      // si no existe aún en el DOM, lo creamos (colocado con position:fixed)
+      const b = document.createElement('button');
+      b.id = 'yesBtn';
+      b.textContent = 'Yes';
+      document.body.appendChild(b);
+      return b;
+    })();
+
+    const noBtn = document.getElementById('noBtn') || (() => {
+      const b = document.createElement('button');
+      b.id = 'noBtn';
+      b.textContent = 'No';
+      document.body.appendChild(b);
+      return b;
+    })();
+
+    const resultEl = document.getElementById('result');
+
+    let yesScale = 1;
+
+    function growYes() {
+      yesScale = Math.min(3.8, yesScale + 0.25); // límite para que no ocupe toda la pantalla
+      yesBtn.style.transform = `translate(-50%, -50%) scale(${yesScale})`;
+    }
+
+    function moveNoAway(ev) {
+      // tamaño del botón
+      const rect = noBtn.getBoundingClientRect();
+      const pad = 12;
+
+      const maxX = Math.max(0, window.innerWidth - rect.width - pad);
+      const maxY = Math.max(0, window.innerHeight - rect.height - pad);
+
+      // posición aleatoria pero dentro de la ventana
+      const x = Math.floor(pad + Math.random() * (maxX - pad));
+      const y = Math.floor(pad + Math.random() * (maxY - pad));
+
+      noBtn.style.left = `${x}px`;
+      noBtn.style.top = `${y}px`;
+
+      growYes();
+    }
+
+    // Mostrar resultado al elegir "Sí"
+    yesBtn.addEventListener('click', () => {
+      resultEl.style.display = 'block';
+    });
+
+    // Hacer que el "No" huya en distintos intentos de interacción
+    ['mouseenter', 'pointerenter', 'touchstart', 'pointerdown', 'mousemove'].forEach(evt => {
+      noBtn.addEventListener(evt, moveNoAway, { passive: true });
+    });
+
+    // Por si realmente logran hacer click en No (poco probable), que también huya
+    noBtn.addEventListener('click', moveNoAway);
+
+    // Colocación inicial un poco desfasada
+    moveNoAway();
+  </script>
+</body>
+</html>
